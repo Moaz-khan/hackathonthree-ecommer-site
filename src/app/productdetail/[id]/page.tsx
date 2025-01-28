@@ -90,36 +90,38 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
       return;
     }
 
+    const updatedCart = [...cartItems];
+    const existingProductIndex = updatedCart.findIndex(
+      (item) =>
+        item.id === product._id &&
+        item.color === selectedColor &&
+        item.size === selectedSize,
+    );
+
+    if (existingProductIndex !== -1) {
+      updatedCart[existingProductIndex].quantity += count;
+    } else {
+      const newItem: CartItem = {
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        original_price: product.original_price,
+        quantity: count,
+        image: product.imageUrl,
+        color: selectedColor,
+        size: selectedSize,
+      };
+      updatedCart.push(newItem);
+    }
+
+    // Saving updated cart to localStorage
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    setCartItems(updatedCart);
+
+    alert(`${count} item${count > 1 ? "s" : ""} added to your cart`);
+
     try {
-      const updatedCart = [...cartItems];
-      const existingProductIndex = updatedCart.findIndex(
-        (item) =>
-          item.id === product._id &&
-          item.color === selectedColor &&
-          item.size === selectedSize,
-      );
-
-      if (existingProductIndex !== -1) {
-        updatedCart[existingProductIndex].quantity += count;
-      } else {
-        const newItem: CartItem = {
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          original_price: product.original_price,
-          quantity: count,
-          image: product.imageUrl,
-          color: selectedColor,
-          size: selectedSize,
-        };
-        updatedCart.push(newItem);
-      }
-
-      // Save to localStorage
-      localStorage.setItem("cart", JSON.stringify(updatedCart));
-      setCartItems(updatedCart);
-
-      // Send to backend
+      console.log("Sending to backend:", updatedCart);
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: {

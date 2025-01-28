@@ -28,7 +28,7 @@ export function NewArrival() {
   // Fetch function with async/await
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/allproducts", {
+      const response = await fetch(`/api/allproducts`, {
         method: "GET",
         headers: {
           cache: "no-cache", // Ensures fresh data is fetched
