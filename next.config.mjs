@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  images: {
+    domains: ["s3-alpha-sig.figma.com", "cdn.sanity.io"], // Add cdn.sanity.io here
+  },
+};
 
 export default nextConfig;
