@@ -58,7 +58,6 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Authentication state
   const router = useRouter();
 
   useEffect(() => {
@@ -79,12 +78,6 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
     if (storedCart) {
       setCartItems(JSON.parse(storedCart));
     }
-
-    // Check if user is authenticated (you can change this based on your authentication method)
-    const user = localStorage.getItem("user"); // Assuming user data is stored in localStorage
-    if (user) {
-      setIsAuthenticated(true);
-    }
   }, []);
 
   if (!product) {
@@ -94,12 +87,6 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   const handleAddToCart = async () => {
     if (!selectedColor || !selectedSize) {
       alert("Please select both color and size.");
-      return;
-    }
-
-    if (!isAuthenticated) {
-      // If the user is not authenticated, redirect them to the login/signup page
-      router.push("/auth"); // Assuming '/auth' is your login/signup route
       return;
     }
 
@@ -134,7 +121,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
     alert(`${count} item${count > 1 ? "s" : ""} added to your cart`);
 
     try {
-      console.log("Sending to backend:", updatedCart); // Log the cart before sending to the backend
+      console.log("Sending to backend:", updatedCart);
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: {
@@ -145,7 +132,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
           quantity: count,
           name: product.name,
           price: product.price,
-          discountPercent: product.discountPercent, // Sending discountPercent instead of original_price
+          discountPercent: product.discountPercent,
           image: product.imageUrl,
           color: selectedColor,
           size: selectedSize,
@@ -157,8 +144,8 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
       }
 
       const data = await response.json();
-      console.log("API Response:", data); // Log the response from the backend
-      router.push("/cart"); // Redirect to cart page after successful addition
+      console.log("API Response:", data);
+      router.push("/cart");
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add to cart. Please try again.");
