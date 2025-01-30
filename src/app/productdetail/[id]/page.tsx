@@ -81,7 +81,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   }, [params.id]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("/cart");
+    const storedCart = localStorage.getItem(`${process.env.NEXT_PUBLIC_SITE_URL}/cart`);
     if (storedCart) {
       setCartItems(JSON.parse(storedCart));
     }
@@ -129,7 +129,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
     try {
       console.log("Sending to backend:", updatedCart);
-      const response = await fetch("/api/cart", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
