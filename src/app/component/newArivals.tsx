@@ -1,54 +1,54 @@
 "use client";
-import * as React from "react";
-import { useState, useEffect } from "react";
+import useSWR, { mutate } from "swr";
 import { Card, CardContent } from "@/components/ui/card";
 import { LiaStarSolid } from "react-icons/lia";
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useEffect, useState } from "react";
+import { client } from "@/sanity/lib/client";
 
-// Define Product type
-interface Product {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-  category: string;
-  discountPercent: number;
-  isNew: boolean;
-  colors: string[];
-  sizes: string[];
-  rating: number; // Add rating to Product type if it's missing
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function NewArrival() {
-  const [products, setProducts] = useState<Product[]>([]);
-
-  // Fetch function with async/await
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(`/api/allproducts`, {
-        method: "GET",
-        headers: {
-          cache: "no-cache", // Ensures fresh data is fetched
-        },
-      });
-      const data = await response.json();
-
-      // Filter products to get only "newArrivals"
-      const newArrivals = data.allProducts.filter(
-        (product: Product) => product.category === "newArrivals",
-      );
-      setProducts(newArrivals);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
+  const { data, error } = useSWR("/api/allproducts", fetcher, {
+    revalidateOnFocus: false, // Window focus par refetch na ho
+    refreshInterval: 0, // Disable automatic refresh
+  });
+  type Product = {
+    _id: string;
+    name: string;
+    price: number;
+    imageUrl: string;
+    discountPercent: number;
+    rating: number;
   };
 
+  const [ratings, setRatings] = useState<Record<string, number>>({});
   useEffect(() => {
-    fetchProducts();
+    const subscription = client
+      .listen(`*[_type == "product"]`)
+      .subscribe(() => {
+        console.log("New product detected! Fetching again...");
+        mutate("/api/allproducts");
+      });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  if (error) return <p>Failed to load</p>;
+  if (!data) return <p>Loading products...</p>;
+
+  // Display only 4 products from the API response
+  const newArrivals = data.allProducts.slice(0, 4);
+
+  // Handle the rating change
+  const handleRatingChange = (productId: string, rating: number) => {
+    setRatings((prevRatings:Record<string,number>) => ({
+      ...prevRatings,
+      [productId]: rating,
+    }));
+  };
 
   return (
     <div className="mt-12 px-4 sm:px-8 lg:px-16">
@@ -59,58 +59,65 @@ export function NewArrival() {
       <div className="relative">
         <ScrollArea className="w-full overflow-x-auto">
           <div className="flex space-x-4 p-4">
-            {products.length > 0 ? (
-              products.map((product) => (
-                <div key={product._id} className="w-[320px] flex-shrink-0">
-                  <Link href={`/productdetail/${product._id}`}>
-                    <Card className="bg-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                      <div className="w-full h-[280px] mb-4 relative">
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="rounded-lg"
-                          layout="fill"
-                          objectFit="cover"
-                        />
-                      </div>
-                      <CardContent className="p-2">
-                        <div className="text-start">
-                          <h3 className="font-semibold text-base sm:text-lg line-clamp-1">
-                            {product.name}
-                          </h3>
-                          <div className="flex justify-start items-center mt-2">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <LiaStarSolid
-                                key={index}
-                                className={`w-[16px] h-[16px] ${
-                                  index < product.rating
-                                    ? "text-[#FFC633]"
-                                    : "text-gray-300"
-                                }`}
-                              />
-                            ))}
-                            <span className="ml-2 text-sm">
-                              {product.rating}/5
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-start mt-2 space-x-2">
-                            <p className="text-black font-semibold text-lg">
-                              ${product.price}
-                            </p>
-                            {product.discountPercent > 0 && (
-                              <span className="text-[#FF3333] font-medium text-xs py-[2px] px-[8px] bg-[#FF33331A] rounded-full">
-                                {product.discountPercent}%
-                              </span>
-                            )}
-                          </div>
+            {newArrivals.length > 0 ? (
+              newArrivals.map((product: Product) => {
+                const currentRating = ratings[product._id] || 4; // Default to 0 if no rating is set
+                return (
+                  <div key={product._id} className="w-[320px] flex-shrink-0">
+                    <Link href={`/productdetail/${product._id}`}>
+                      <Card className="bg-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <div className="w-full h-[280px] mb-4 relative">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="rounded-lg"
+                            layout="fill"
+                            objectFit="cover"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </div>
-              ))
+                        <CardContent className="p-2">
+                          <div className="text-start">
+                            <h3 className="font-semibold text-base sm:text-lg line-clamp-1">
+                              {product.name}
+                            </h3>
+                            <div className="flex justify-start items-center mt-2">
+                              {/* Manual rating component */}
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <LiaStarSolid
+                                  key={index}
+                                  className={`w-[16px] h-[16px] ${
+                                    index < currentRating
+                                      ? "text-[#FFC633]"
+                                      : "text-gray-300"
+                                  } cursor-pointer`}
+                                  onClick={() =>
+                                    handleRatingChange(product._id, index + 1)
+                                  }
+                                />
+                              ))}
+                              <span className="ml-2 text-sm">
+                                {currentRating}/5
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-start mt-2 space-x-2">
+                              <p className="text-black font-semibold text-lg">
+                                ${product.price}
+                              </p>
+                              {product.discountPercent > 0 && (
+                                <span className="text-[#FF3333] font-medium text-xs py-[2px] px-[8px] bg-[#FF33331A] rounded-full">
+                                  {product.discountPercent}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                );
+              })
             ) : (
-              <p>Loading products...</p>
+              <p>No new arrivals found.</p>
             )}
           </div>
           <ScrollBar orientation="horizontal" />

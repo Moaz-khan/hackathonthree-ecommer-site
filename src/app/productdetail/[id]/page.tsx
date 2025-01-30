@@ -30,7 +30,7 @@ interface CartItem {
   id: number;
   name: string;
   price: number;
-  original_price?: number;
+  discountPercent: number;
   quantity: number;
   image: string;
   color: string;
@@ -66,7 +66,11 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
       if (!productData) {
         notFound();
       } else {
-        setProduct(productData);
+        setProduct({
+          ...productData,
+          // Assigning a random rating (between 1 and 5) to the product
+          rating: Math.floor(Math.random() * 5) + 1,
+        });
       }
     };
 
@@ -105,7 +109,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
         id: product._id,
         name: product.name,
         price: product.price,
-        original_price: product.original_price,
+        discountPercent: product.discountPercent,
         quantity: count,
         image: product.imageUrl,
         color: selectedColor,

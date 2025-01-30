@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { client } from "../../sanity/lib/client"; // Import your sanity client
+import { client } from "../../sanity/lib/client";
 import { BreadcrumbWithCustomSeparator } from "./breadcrumbs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MdOutlineRemoveShoppingCart } from "react-icons/md";
@@ -10,17 +10,16 @@ import Image from "next/image";
 interface CartItem {
   id: number;
   name: string;
-  image: string;
   price: number;
-  size: string;
-  color: string;
+  discountPercent: number; // Discount percent for individual items
   quantity: number;
+  image: string;
+  color: string;
+  size: string;
 }
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    { id: 0, name: "", image: "", price: 0, size: "", color: "", quantity: 0 },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const [shippingCharges] = useState<number>(50);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
@@ -65,9 +64,9 @@ const CartPage = () => {
       });
 
       if (res.ok) {
-        // Agar item delete ho jaye
+        // Remove item from the cart after deleting it
         const updatedCart = cartItems.filter((item) => item.id !== id);
-        setCartItems(updatedCart); // State ko update karte hain
+        setCartItems(updatedCart); // Update the cart state
       } else {
         const errorData = await res.json();
         console.error("Delete failed:", errorData.message);
@@ -81,7 +80,7 @@ const CartPage = () => {
     const updatedCart = cartItems.map((item) =>
       item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
     );
-    setCartItems(updatedCart); // Update the state with incremented quantity
+    setCartItems(updatedCart); // Update the cart with incremented quantity
   };
 
   const decrementQuantity = (id: number) => {
@@ -90,7 +89,7 @@ const CartPage = () => {
         ? { ...item, quantity: item.quantity - 1 }
         : item,
     );
-    setCartItems(updatedCart); // Update the state with decremented quantity
+    setCartItems(updatedCart); // Update the cart with decremented quantity
   };
 
   const calculateSubtotal = () => {
@@ -100,14 +99,16 @@ const CartPage = () => {
     );
   };
 
-  const calculateDiscount = () => {
-    const subtotal = calculateSubtotal();
-    return subtotal * 0.1; // 10% discount
+  const calculateDiscountForItem = (item: CartItem) => {
+    return (item.price * item.discountPercent) / 100;
   };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const discount = calculateDiscount();
+    const discount = cartItems.reduce(
+      (totalDiscount, item) => totalDiscount + calculateDiscountForItem(item),
+      0,
+    );
     return subtotal - discount + shippingCharges;
   };
 
@@ -133,6 +134,7 @@ const CartPage = () => {
             color: item.color,
             quantity: item.quantity,
             price: item.price,
+            discount: calculateDiscountForItem(item), // Store the individual item discount
           });
         }),
       );
@@ -154,14 +156,14 @@ const CartPage = () => {
       alert(`Order created successfully! Order ID: ${order._id}`);
 
       // Clear cart items and customer details after order creation
-      setCartItems([]); // Clear cart state
+      setCartItems([]);
       setCustomerDetails({
         name: "",
         email: "",
         address: "",
         phoneNumber: "",
       });
-      setPaymentMethod(""); // Reset payment method to empty
+      setPaymentMethod(""); // Reset payment method
     } catch (error) {
       console.error("Error creating customer or order:", error);
       alert("An error occurred. Please try again.");
@@ -206,7 +208,8 @@ const CartPage = () => {
                       Color: {item.color}
                     </div>
                     <div className="text-lg md:text-xl font-semibold text-gray-900">
-                      ${item.price}
+                      ${item.price} - Discount: $
+                      {calculateDiscountForItem(item).toFixed(2)}
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -223,7 +226,7 @@ const CartPage = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => deleteCartItem(item.id)} // API call ke liye
+                    onClick={() => deleteCartItem(item.id)}
                     className="text-red-500 font-semibold">
                     <MdOutlineRemoveShoppingCart />
                   </button>
@@ -235,7 +238,7 @@ const CartPage = () => {
 
         <div className="w-full md:w-1/3 p-4 md:p-6 bg-white border rounded-lg shadow-md flex flex-col justify-between h-full">
           <h2 className="text-xl md:text-2xl font-bold mb-4">Order Summary</h2>
-          {/* Customer details input */}
+          {/* Customer details form */}
           <div className="mb-4">
             <label className="block mb-2">Name</label>
             <input
@@ -314,6 +317,7 @@ const CartPage = () => {
               </option>
             </select>
           </div>
+
           {/* Order Total Calculation */}
           <div className="mt-4">
             <div className="flex justify-between mb-2 font-bold">
@@ -323,7 +327,14 @@ const CartPage = () => {
             <div className="flex justify-between mb-2">
               <span className="font-bold">Discount</span>
               <span className="text-red-500 font-bold">
-                -${calculateDiscount().toFixed(2)}
+                -$
+                {cartItems
+                  .reduce(
+                    (totalDiscount, item) =>
+                      totalDiscount + calculateDiscountForItem(item),
+                    0,
+                  )
+                  .toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between mb-4">
