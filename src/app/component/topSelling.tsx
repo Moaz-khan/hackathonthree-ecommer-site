@@ -11,7 +11,7 @@ import { client } from "@/sanity/lib/client";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function TopSelling() {
-  const { data, error } = useSWR(`${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`, fetcher, {
+  const { data, error } = useSWR(`${process.env.NEXT_PUBLIC_SITE_URL}api/allproducts`, fetcher, {
     revalidateOnFocus: false, // Window focus par refetch na ho
     refreshInterval: 0, // Disable automatic refresh
   });
@@ -30,7 +30,7 @@ export function TopSelling() {
       .listen(`*[_type == "product"]`)
       .subscribe(() => {
         console.log("New product detected! Fetching again...");
-        mutate(`${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`);
+        mutate(`${process.env.NEXT_PUBLIC_SITE_URL}api/allproducts`);
       });
 
     return () => subscription.unsubscribe();
@@ -63,7 +63,7 @@ export function TopSelling() {
                 const currentRating = ratings[product._id] || 5; // Default to 0 if no rating is set
                 return (
                   <div key={product._id} className="w-[320px] flex-shrink-0">
-                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL}/productdetail/${product._id}`}>
+                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL}productdetail/${product._id}`}>
                       <Card className="bg-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div className="w-full h-[280px] mb-4 relative">
                           <Image

@@ -1,9 +1,27 @@
+type Product = {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  discountPercent: number;
+  isNew: boolean;
+  colors: string[];
+  sizes: string[];
+  rating: number;
+};
+
 import { client } from "@/sanity/lib/client";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+// Global variable to store real-time products
+let allProducts: Product[] = [];
+
+// Function to fetch initial products and set up real-time listener
+async function fetchAndListenProducts() {
   try {
-    const allProducts = await client.fetch(`*[_type == "product"]{
+    // Fetch initial data
+    const data = await client.fetch(`*[_type == "product"]{
       _id,
       name,
       description,
@@ -12,15 +30,33 @@ export async function GET() {
       discountPercent,
       "isNew": new,
       colors,
-      sizes,
-      rating
+      sizes
     }`);
 
-    return NextResponse.json({ allProducts });
+    allProducts = data;
+
+    // Set up real-time listener
+    client.listen(`*[_type == "product"]`).subscribe((update) => {
+      console.log("Real-time update:", update);
+
+      // Fetch updated products list after any change
+      fetchAndListenProducts();
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
+  }
+}
+
+// Initial fetch and listen setup
+fetchAndListenProducts();
+
+export async function GET() {
+  try {
+    return NextResponse.json({ allProducts });
+  } catch (error) {
+    console.error("Error returning products:", error);
     return NextResponse.json(
-      { message: "Error fetching products" },
+      { message: "Error returning products" },
       { status: 500 },
     );
   }

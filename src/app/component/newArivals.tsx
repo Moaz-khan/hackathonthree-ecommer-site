@@ -46,7 +46,7 @@ export function NewArrival() {
       )
       .subscribe(() => {
         console.log("New product detected! Fetching again...");
-        mutate(`${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`, {
+        mutate(`${process.env.NEXT_PUBLIC_SITE_URL}api/allproducts`, {
           cache: "no-cache",
         });
       });
@@ -82,7 +82,7 @@ export function NewArrival() {
                 const currentRating = ratings[product._id] || 4; // Default to 0 if no rating is set
                 return (
                   <div key={product._id} className="w-[320px] flex-shrink-0">
-                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL}/productdetail/${product._id}`}>
+                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL}productdetail/${product._id}`}>
                       <Card className="bg-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div className="w-full h-[280px] mb-4 relative">
                           <Image
