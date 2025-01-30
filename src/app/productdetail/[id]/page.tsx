@@ -81,9 +81,11 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   }, [params.id]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem(`${process.env.NEXT_PUBLIC_SITE_URL}cart`);
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
+    if (typeof window !== "undefined") {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        setCartItems(JSON.parse(storedCart));
+      }
     }
   }, []);
 
@@ -129,22 +131,25 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
     try {
       console.log("Sending to backend:", updatedCart);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL}api/cart`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: product._id,
+            quantity: count,
+            name: product.name,
+            price: product.price,
+            discountPercent: product.discountPercent,
+            image: product.imageUrl,
+            color: selectedColor,
+            size: selectedSize,
+          }),
         },
-        body: JSON.stringify({
-          id: product._id,
-          quantity: count,
-          name: product.name,
-          price: product.price,
-          discountPercent: product.discountPercent,
-          image: product.imageUrl,
-          color: selectedColor,
-          size: selectedSize,
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update cart in API");
