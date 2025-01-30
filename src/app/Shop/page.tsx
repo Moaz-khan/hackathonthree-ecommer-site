@@ -30,7 +30,9 @@ const AllProductsSection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/allproducts");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`,
+        );
         const data = await response.json();
         setProducts(data.allProducts); // Use the allProducts array from the response
       } catch (error) {

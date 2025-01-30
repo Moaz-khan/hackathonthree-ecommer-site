@@ -38,9 +38,12 @@ interface CartItem {
 }
 
 const getProductData = async (id: string): Promise<Product | null> => {
-  const res = await fetch("/api/allproducts", {
-    cache: "no-cache",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`,
+    {
+      cache: "no-cache",
+    },
+  );
   if (!res.ok) {
     return null;
   }
@@ -78,7 +81,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   }, [params.id]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
+    const storedCart = localStorage.getItem("/cart");
     if (storedCart) {
       setCartItems(JSON.parse(storedCart));
     }
@@ -149,7 +152,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
       const data = await response.json();
       console.log("API Response:", data);
-      router.push("/cart");
+      router.push(`${process.env.NEXT_PUBLIC_SITE_URL}/cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add to cart. Please try again.");

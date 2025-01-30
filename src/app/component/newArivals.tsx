@@ -11,10 +11,14 @@ import { client } from "@/sanity/lib/client";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function NewArrival() {
-  const { data, error } = useSWR("/api/allproducts", fetcher, {
-    revalidateOnFocus: false, // Window focus par refetch na ho
-    refreshInterval: 0, // Disable automatic refresh
-  });
+  const { data, error } = useSWR(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`,
+    fetcher,
+    {
+      revalidateOnFocus: false, // Window focus par refetch na ho
+      refreshInterval: 0, // Disable automatic refresh
+    },
+  );
   type Product = {
     _id: string;
     name: string;
@@ -27,10 +31,24 @@ export function NewArrival() {
   const [ratings, setRatings] = useState<Record<string, number>>({});
   useEffect(() => {
     const subscription = client
-      .listen(`*[_type == "product"]`)
+      .listen(
+        `*[_type == "product"]{
+      _id,
+      name,
+      description,
+      price,
+      "imageUrl": image.asset->url,
+      discountPercent,
+      "isNew": new,
+      colors,
+      sizes
+    }`,
+      )
       .subscribe(() => {
         console.log("New product detected! Fetching again...");
-        mutate("/api/allproducts");
+        mutate(`${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`, {
+          cache: "no-cache",
+        });
       });
 
     return () => subscription.unsubscribe();
@@ -44,7 +62,7 @@ export function NewArrival() {
 
   // Handle the rating change
   const handleRatingChange = (productId: string, rating: number) => {
-    setRatings((prevRatings:Record<string,number>) => ({
+    setRatings((prevRatings: Record<string, number>) => ({
       ...prevRatings,
       [productId]: rating,
     }));
@@ -64,7 +82,7 @@ export function NewArrival() {
                 const currentRating = ratings[product._id] || 4; // Default to 0 if no rating is set
                 return (
                   <div key={product._id} className="w-[320px] flex-shrink-0">
-                    <Link href={`/productdetail/${product._id}`}>
+                    <Link href={`${process.env.NEXT_PUBLIC_SITE_URL}/productdetail/${product._id}`}>
                       <Card className="bg-white rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div className="w-full h-[280px] mb-4 relative">
                           <Image
