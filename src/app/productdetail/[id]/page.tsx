@@ -39,7 +39,7 @@ interface CartItem {
 
 const getProductData = async (id: string): Promise<Product | null> => {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`,
+    `${process.env.NEXT_PUBLIC_SITE_URL}api/allproducts`,
     {
       cache: "no-cache",
     },
@@ -81,7 +81,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
   }, [params.id]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem(`${process.env.NEXT_PUBLIC_SITE_URL}/cart`);
+    const storedCart = localStorage.getItem(`${process.env.NEXT_PUBLIC_SITE_URL}cart`);
     if (storedCart) {
       setCartItems(JSON.parse(storedCart));
     }
@@ -129,7 +129,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
     try {
       console.log("Sending to backend:", updatedCart);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/cart`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -152,7 +152,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
       const data = await response.json();
       console.log("API Response:", data);
-      router.push(`${process.env.NEXT_PUBLIC_SITE_URL}/cart`);
+      router.push(`${process.env.NEXT_PUBLIC_SITE_URL}cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add to cart. Please try again.");

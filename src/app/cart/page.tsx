@@ -38,7 +38,7 @@ const CartPage = () => {
 
   const fetchCartData = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/cart`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`);
       if (res.ok) {
         const cartData: CartItem[] = await res.json();
         const filteredCartData = cartData.filter(
@@ -55,7 +55,7 @@ const CartPage = () => {
 
   const deleteCartItem = async (id: number) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/cart`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
