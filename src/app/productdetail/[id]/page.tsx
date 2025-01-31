@@ -157,7 +157,7 @@ const ProductDetailPage = ({ params }: { params: { id: string } }) => {
 
       const data = await response.json();
       console.log("API Response:", data);
-      router.push(`${process.env.NEXT_PUBLIC_SITE_URL}cart`);
+      router.push(`${process.env.NEXT_PUBLIC_SITE_URL}/cart`);
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("Failed to add to cart. Please try again.");

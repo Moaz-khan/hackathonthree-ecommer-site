@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 
 // Cart item type define karein
 type CartItem = {
@@ -10,32 +8,26 @@ type CartItem = {
   quantity: number;
 };
 
-// Cart data file ka path
-const cartFilePath = path.resolve(process.cwd(), "cart.json");
+// In-memory cart data (for development/testing)
+let cart: CartItem[] = [];
 
-// Helper function to read cart data from the file
+// Helper function to read cart data (memory-based)
 const readCartData = (): CartItem[] => {
-  if (fs.existsSync(cartFilePath)) {
-    const fileData = fs.readFileSync(cartFilePath, "utf-8");
-    return JSON.parse(fileData) as CartItem[];
-  }
-  return []; // Agar cart data na ho, toh empty array return karo
+  return cart;
 };
+console.log(readCartData);
 
-// Helper function to write cart data to the file
+// Helper function to write cart data (memory-based)
 const writeCartData = (data: CartItem[]) => {
-  fs.writeFileSync(cartFilePath, JSON.stringify(data, null, 2), "utf-8");
+  cart = data;
 };
 
 export async function GET() {
-  const cart = readCartData();
   return NextResponse.json(cart, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
-  const newItem: CartItem = await req.json(); // Define `newItem` as `CartItem`
-  const cart = readCartData();
-
+  const newItem: CartItem = await req.json();
   const existingIndex = cart.findIndex((item) => item.id === newItem.id);
 
   if (existingIndex !== -1) {
@@ -49,13 +41,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const { id }: { id: string } = await req.json(); // Define `id` type explicitly
+  const { id }: { id: string } = await req.json();
   if (!id) {
     return NextResponse.json({ message: "ID is required" }, { status: 400 });
   }
 
-  const cart = readCartData();
-  const filteredCart = cart.filter((item) => item.id !== id); // Remove item with the given id
+  const filteredCart = cart.filter((item) => item.id !== id);
 
   if (filteredCart.length === cart.length) {
     return NextResponse.json({ message: "Item not found" }, { status: 404 });
