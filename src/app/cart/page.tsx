@@ -38,13 +38,12 @@ const CartPage = () => {
 
   const fetchCartData = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}api/cart`, {
+        cache: "no-cache",
+      });
       if (res.ok) {
         const cartData: CartItem[] = await res.json();
-        const filteredCartData = cartData.filter(
-          (item) => item.name && item.price > 0,
-        ); // Remove empty or invalid items
-        setCartItems(filteredCartData);
+        setCartItems(cartData.filter((item) => item.name && item.price > 0));
       } else {
         console.error("Failed to fetch cart data");
       }
