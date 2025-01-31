@@ -44,7 +44,7 @@ const Hero = () => {
           {/* First Vector Image with rotation animation */}
           <div className="absolute hover:w-28 hover:h-28 top-4 right-0 w-24 h-24 z-20 animate-rotate360">
             <Image
-              src="/images/vectortwo.png"
+              src="/images/Vectortwo.png"
               alt="First Vector Image"
               width={104}
               height={104}
@@ -54,7 +54,7 @@ const Hero = () => {
           {/* Second Vector Image with rotation animation */}
           <div className="absolute hover:w-28 hover:h-28 top-[50%] left-0 w-24 h-24 z-20 animate-rotate360">
             <Image
-              src="/images/vectorone.png"
+              src="/images/Vectorone.png"
               alt="Second Vector Image"
               width={56}
               height={56}
