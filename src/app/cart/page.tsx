@@ -77,7 +77,14 @@ const CartPage = () => {
 
   const incrementQuantity = (id: number) => {
     const updatedCart = cartItems.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
+      item.id === id
+        ? {
+            ...item,
+            quantity: item.quantity + 1,
+            discountPercent:
+              (item.discountPercent / item.quantity) * (item.quantity + 1), // Update discount dynamically
+          }
+        : item,
     );
     setCartItems(updatedCart); // Update the cart with incremented quantity
   };
@@ -85,7 +92,12 @@ const CartPage = () => {
   const decrementQuantity = (id: number) => {
     const updatedCart = cartItems.map((item) =>
       item.id === id && item.quantity > 1
-        ? { ...item, quantity: item.quantity - 1 }
+        ? {
+            ...item,
+            quantity: item.quantity - 1,
+            discountPercent:
+              (item.discountPercent / item.quantity) * (item.quantity - 1), // Update discount dynamically
+          }
         : item,
     );
     setCartItems(updatedCart); // Update the cart with decremented quantity
