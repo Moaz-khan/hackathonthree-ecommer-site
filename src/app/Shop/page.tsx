@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { BreadcrumbWithCustomSeparator } from "./breadcrumbs";
 import Link from "next/link";
-import PaginationDemo from "./pignation"; // Import the PaginationDemo component
+import PaginationDemo from "./pignation";
 import Image from "next/image";
 
 // Define the Product type
@@ -18,14 +18,15 @@ type Product = {
   isNew: boolean;
   colors: string[];
   sizes: string[];
-  rating: number; // Adding rating to the type
+  rating: number;
 };
 
-const AllProductsSection = () => {
+const AllProductsSection: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [productsPerPage] = useState<number>(8); // 8 products per page
+  const [productsPerPage] = useState<number>(8);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -34,7 +35,7 @@ const AllProductsSection = () => {
           `${process.env.NEXT_PUBLIC_SITE_URL}/api/allproducts`,
         );
         const data = await response.json();
-        setProducts(data.allProducts); // Use the allProducts array from the response
+        setProducts(data.allProducts);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -45,16 +46,26 @@ const AllProductsSection = () => {
     fetchProducts();
   }, []);
 
+  const categories = [
+    "All",
+    ...new Set(products.map((product) => product.category)),
+  ];
+
+  const filteredProducts =
+    selectedCategory === "All"
+      ? products
+      : products.filter((product) => product.category === selectedCategory);
+
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(
+  const currentProducts = filteredProducts.slice(
     indexOfFirstProduct,
     indexOfLastProduct,
   );
 
   const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const isNextButtonDisabled = indexOfLastProduct >= products.length;
+  const isNextButtonDisabled = indexOfLastProduct >= filteredProducts.length;
 
   return (
     <section className="container py-12 px-4 md:px-12 max-w-full overflow-x-hidden">
@@ -66,16 +77,25 @@ const AllProductsSection = () => {
             <div className="flex items-center space-x-2 text-sm sm:text-base">
               <span className="text-black/60">
                 Showing {indexOfFirstProduct + 1}-
-                {Math.min(indexOfLastProduct, products.length)} of{" "}
-                {products.length} Products
+                {Math.min(indexOfLastProduct, filteredProducts.length)} of{" "}
+                {filteredProducts.length} Products
               </span>
-              <p className="flex items-center text-black/60 space-x-1">
-                Sort by:
-                <span className="text-black font-semibold">Most Popular</span>
-                <button className="text-black font-semibold cursor-pointer">
-                  <MdKeyboardArrowDown />
-                </button>
-              </p>
+              <div className="relative">
+                <select
+                  className="text-black font-semibold bg-white border p-1 rounded cursor-pointer"
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setCurrentPage(1);
+                  }}>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <MdKeyboardArrowDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black" />
+              </div>
             </div>
           </div>
 
@@ -90,7 +110,7 @@ const AllProductsSection = () => {
                       <Image
                         src={product.imageUrl}
                         alt={product.name}
-                        width={400} // Customize dimensions
+                        width={400}
                         height={400}
                         className="rounded-lg w-full h-full object-cover max-w-full"
                       />
@@ -107,9 +127,7 @@ const AllProductsSection = () => {
                       </p>
                       <div className="flex justify-start items-center mt-2">
                         <span
-                          className={`text-xs ${
-                            product.isNew ? "text-green-500" : "text-gray-500"
-                          }`}>
+                          className={`text-xs ${product.isNew ? "text-green-500" : "text-gray-500"}`}>
                           {product.isNew ? "New Arrival" : "Regular"}
                         </span>
                       </div>
@@ -139,9 +157,9 @@ const AllProductsSection = () => {
 
           <PaginationDemo
             productsPerPage={productsPerPage}
-            totalProducts={products.length}
+            totalProducts={filteredProducts.length}
             onPageChange={handlePageChange}
-            isNextButtonDisabled={isNextButtonDisabled} // Pass the state for disabling Next button
+            isNextButtonDisabled={isNextButtonDisabled}
           />
         </div>
       </div>

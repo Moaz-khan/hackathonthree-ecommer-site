@@ -8,6 +8,7 @@ type Product = {
   isNew: boolean;
   colors: string[];
   sizes: string[];
+  category:string[],
   rating: number;
 };
 
@@ -30,6 +31,7 @@ async function fetchAndListenProducts() {
       discountPercent,
       "isNew": new,
       colors,
+      category,
       sizes
     }`);
 
